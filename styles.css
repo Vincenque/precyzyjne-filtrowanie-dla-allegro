@@ -1,0 +1,88 @@
+/* Treści są generowane przez AI na podstawie promptów Vincenque (https://github.com/Vincenque) */
+
+.precyzyjny-filtr-kontener {
+    width: 100%;
+    display: block;
+    margin-top: 8px;
+}
+
+.allegro-radio-wtyczka {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin-bottom: 12px;
+    font-size: 14px;
+    color: #222222;
+    cursor: pointer;
+}
+
+.pole-wyboru-radio {
+    width: 22px;
+    height: 22px;
+    cursor: pointer;
+    margin: 0;
+}
+
+.etykieta-radio {
+    font-size: 16px;
+    color: #222222;
+    cursor: pointer;
+}
+
+.szczegoly-ukryte {
+    padding-left: 30px;
+    margin-top: 16px;
+}
+
+.sekcja-filtru {
+    margin-bottom: 12px;
+}
+
+.pole-wprowadzania {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 8px;
+    border: 1px solid #cccccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+    font-size: 14px;
+}
+
+.pole-krotkie {
+    width: 80px;
+    margin-bottom: 0;
+}
+
+.wiersz-opinii {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.pole-wyboru {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
+
+.etykieta-opinii {
+    font-size: 14px;
+    color: #222222;
+}
+
+.przycisk-akcji {
+    width: 100%;
+    padding: 10px;
+    background-color: #ff5a00;
+    color: #ffffff;
+    border: none;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.przycisk-akcji:hover {
+    background-color: #e55100;
+}
