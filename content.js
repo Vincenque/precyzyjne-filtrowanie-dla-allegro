@@ -6,6 +6,7 @@ let czyTrwaPobieranieKolejnejStrony = false;
 let czyOsiagnietoKoniecStron = false;
 let minimalnaLiczbaWidocznychOfert = 12;
 let czyZainicjowanoZapisaneFiltry = false;
+let ostatniZnanyUrl = window.location.href;
 
 // Funkcja analityczna budująca mapę DOM i wyłuskująca główny kontener na podstawie zagęszczenia ofert
 function znajdzGlownyKontener(korzenDokumentu) {
@@ -53,6 +54,7 @@ function synchronizujZakresy() {
     poleOd = document.getElementById("zakres-ocena-od");
     poleDo = document.getElementById("zakres-ocena-do");
 
+    // Weryfikacja, by górny zakres nigdy nie spadł poniżej wartości dolnego zakresu
     wartoscOd = parseFloat(poleOd.value.replace(",", ".")) || 0;
     wartoscDo = parseFloat(poleDo.value.replace(",", ".")) || 5;
 
@@ -70,23 +72,31 @@ function aktualizujAdresUrl(wartoscOd) {
     obecnyParametr = obiektUrl.searchParams.get("ocena-produktu") || "";
     wartoscParametru = "";
 
+    // Dynamicznie obliczamy wartość niezbędną dla serwerów Allegro w zależności od naszych widełek
     (wartoscOd >= 5.0) ? wartoscParametru = "5.0" : ((wartoscOd >= 4.8) ? wartoscParametru = "od-4.8" : ((wartoscOd >= 4.6) ? wartoscParametru = "od-4.6" : ""));
 
     if (obecnyParametr !== wartoscParametru) {
         znacznikCzasuPrzeladowania = new Date().toISOString();
         console.log(znacznikCzasuPrzeladowania + " - Zmiana natywnego filtra Allegro, nastąpi odświeżenie strony.");
         
+        // Zmieniamy adres wymuszając hard-reload, co odświeża bazowy widok produktów po stronie Allegro
         (wartoscParametru !== "") ? obiektUrl.searchParams.set("ocena-produktu", wartoscParametru) : obiektUrl.searchParams.delete("ocena-produktu");
         obiektUrl.searchParams.delete("p");
         window.location.href = obiektUrl.toString();
         return true;
     }
     
+    // Zapobiega fałszywym detekcjom zmiany adresu (SPA) w pętli setInterval po zaktualizowaniu adresu
+    window.history.replaceState({}, "", obiektUrl.toString());
+    ostatniZnanyUrl = window.location.href;
+    
     return false;
 }
 
 function ukryjPaginacje() {
     let elementyPaginacji;
+    
+    // Szukamy elementów związanych ze stronicowaniem po różnorodnych atrybutach, które Allegro miesza
     elementyPaginacji = document.querySelectorAll('[aria-label*="paginacj"], [aria-label*="pagination"], [data-box-name*="Pagination"], [data-role*="pagination"]');
     elementyPaginacji.forEach(function(element) {
         element.style.display = "none";
@@ -112,6 +122,7 @@ function wstrzyknijPanelBoczny() {
     let poleDo;
 
     try {
+        // Kontrolna próba pobrania elementu chroni przed dublowaniem kontrolek w drzewie DOM
         document.getElementById("wlasny-zakres-radio").id;
         return;
     } catch (blokadaWielokrotna) {
@@ -128,6 +139,7 @@ function wstrzyknijPanelBoczny() {
     autorskiPanelFiltrow = document.createElement("div");
 
     try {
+        // Skrypt szuka pierwszego kontenera, który jest ul/div i ma w sobie przyciski radio
         sekcjaOceny = naglowekOceny.parentElement;
         while (sekcjaOceny.tagName !== "BODY" && sekcjaOceny.querySelectorAll('input[type="radio"]').length === 0) {
             sekcjaOceny = sekcjaOceny.parentElement;
@@ -137,6 +149,7 @@ function wstrzyknijPanelBoczny() {
         ostatnieRadio = wszystkieRadia[wszystkieRadia.length - 1];
         nazwaGrupyRadio = ostatnieRadio.name;
 
+        // Klonujemy klasę wiersza z oryginalnego Allegro, by nasz filtr zlał się wizualnie ze stroną
         wierszOstatniejOpcji = ostatnieRadio.parentElement;
         while (wierszOstatniejOpcji.parentElement.querySelectorAll('input[type="radio"]').length === 1) {
             wierszOstatniejOpcji = wierszOstatniejOpcji.parentElement;
@@ -164,6 +177,7 @@ function wstrzyknijPanelBoczny() {
             </div>
         `;
 
+        // Używamy insertAdjacentElement by zagwarantować umiejscowienie na idealnym końcu grupy
         wierszOstatniejOpcji.insertAdjacentElement("afterend", autorskiPanelFiltrow);
 
         inneRadia = sekcjaOceny.querySelectorAll('input[type="radio"]:not(#wlasny-zakres-radio)');
@@ -175,6 +189,7 @@ function wstrzyknijPanelBoczny() {
         });
 
     } catch (bladWstrzykiwania) {
+        // Jeśli nie ma oryginalnej grupy ocen (np. aktywny filtr schował kategorię), budujemy ją od zera
         znacznikCzasuBledu = new Date().toISOString();
         console.log(znacznikCzasuBledu + " - Filtr ocen aktywny (brak głównej sekcji). Błąd: " + bladWstrzykiwania.message + ". Inicjacja samodzielnej sekcji zastępczej.");
 
@@ -214,6 +229,7 @@ function wstrzyknijPanelBoczny() {
         document.getElementById("szczegoly-filtru").style.display = zdarzenie.target.checked ? "block" : "none";
     });
 
+    // Odtwarzanie stanów dla płynnego UX przy hard-reload
     if (sessionStorage.getItem("wlasnyFiltrAktywny") === "tak") {
         poleRadio.checked = true;
         document.getElementById("szczegoly-filtru").style.display = "block";
@@ -258,6 +274,7 @@ function przetwarzajOferty() {
     liczbaOpinii = parseInt(document.getElementById("wymagane-opinie").value) || 0;
     sprawdzajOpinie = document.getElementById("weryfikuj-opinie").checked;
 
+    // Przechowujemy dane filtrów w sesji przeglądarki na wypadek asynchronicznego przeładowania układu strony (SPA)
     sessionStorage.setItem("wlasnyFiltrAktywny", "tak");
     sessionStorage.setItem("wlasnaOcenaOd", document.getElementById("zakres-ocena-od").value);
     sessionStorage.setItem("wlasnaOcenaDo", document.getElementById("zakres-ocena-do").value);
@@ -278,6 +295,7 @@ function przetwarzajOferty() {
         oferta.style.display = "none";
         ramkaSiatki = oferta;
         
+        // Pniemy się wyżej, by ukryć div kontenerowy danego artykułu, likwidując "białe luki" na gridzie
         while (ramkaSiatki.parentElement && ramkaSiatki.parentElement !== glownyKontener) {
             ramkaSiatki = ramkaSiatki.parentElement;
         }
@@ -317,6 +335,7 @@ function przetwarzajOferty() {
         }
     });
 
+    // Weryfikacja ilości produktów po odfiltrowaniu w celu wczesnego wyzwolenia nieskończonego przewijania
     liczbaWidocznychOfert = Array.from(glownyKontener.querySelectorAll("article")).filter(function(oferta) {
         return oferta.style.display !== "none";
     }).length;
@@ -350,6 +369,10 @@ function pobierzKolejnaStrone() {
 
     urlKolejnejStrony = new URL(window.location.href);
     urlKolejnejStrony.searchParams.set("p", numerBiezacejStrony);
+
+    // Aktualizujemy pasek przeglądarki już na etapie wywołania funkcji, oraz zachowujemy ten URL w pamięci
+    window.history.replaceState({}, "", urlKolejnejStrony.toString());
+    ostatniZnanyUrl = window.location.href;
 
     fetch(urlKolejnejStrony.toString())
         .then(function(odpowiedz) {
@@ -424,7 +447,6 @@ function pobierzKolejnaStrone() {
                 (czyZostawicKomorke) ? (komorka.style.display = "", docelowyKontener.appendChild(komorka), liczbaNowoDodanychOfert++) : null;
             });
 
-            window.history.replaceState({}, "", urlKolejnejStrony.toString());
             ukryjPaginacje();
             czyTrwaPobieranieKolejnejStrony = false;
 
@@ -444,11 +466,41 @@ function pobierzKolejnaStrone() {
 
 window.addEventListener("scroll", function() {
     let dystansDoDnaOkna;
-    dystansDoDnaOkna = document.documentElement.scrollHeight - (window.innerHeight + window.scrollY);
-    (dystansDoDnaOkna < 900 && !czyTrwaPobieranieKolejnejStrony && !czyOsiagnietoKoniecStron) ? pobierzKolejnaStrone() : null;
+    let obiektXPath;
+    let identyfikatorWyszukiwania;
+    let pozycjaWyzwalacza;
+
+    // Natywny XPath wyszukujący tekst pożądanego identyfikatora - gwarantuje wysoką wydajność skanowania drzewa
+    obiektXPath = document.evaluate("//span[contains(., 'identyfikator wyszukiwania')]", document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null);
+    identyfikatorWyszukiwania = obiektXPath.singleNodeValue;
+
+    if (identyfikatorWyszukiwania) {
+        // Obliczamy odległość wyzwalacza z dużym zapasem, by płynnie załadować produkty, zanim użytkownik do nich dotrze
+        pozycjaWyzwalacza = identyfikatorWyszukiwania.getBoundingClientRect().top;
+        (pozycjaWyzwalacza < window.innerHeight + 800 && !czyTrwaPobieranieKolejnejStrony && !czyOsiagnietoKoniecStron) ? pobierzKolejnaStrone() : null;
+    } else {
+        dystansDoDnaOkna = document.documentElement.scrollHeight - (window.innerHeight + window.scrollY);
+        (dystansDoDnaOkna < 900 && !czyTrwaPobieranieKolejnejStrony && !czyOsiagnietoKoniecStron) ? pobierzKolejnaStrone() : null;
+    }
 });
 
 setInterval(function() {
+    let znacznikCzasuSpa;
+
     wstrzyknijPanelBoczny();
     ukryjPaginacje();
+
+    // Wykrywanie zdarzeń SPA (np. zmiana sortowania "najniższa cena") bez konieczności nasłuchiwania na wszystkie akcje
+    if (window.location.href !== ostatniZnanyUrl) {
+        ostatniZnanyUrl = window.location.href;
+
+        // Jeżeli nasz własny filtr jest włączony, po załadowaniu nowej siatki wymuszamy jego asynchroniczne ponowne nałożenie
+        if (sessionStorage.getItem("wlasnyFiltrAktywny") === "tak") {
+            znacznikCzasuSpa = new Date().toISOString();
+            console.log(znacznikCzasuSpa + " - Wykryto nawigację SPA. Odtwarzanie własnego filtra ofert.");
+            
+            // 1200ms to bezpieczny margines na to, aby skrypty Allegro zdążyły pobrać zawartość nowej podstrony
+            setTimeout(przetwarzajOferty, 1200);
+        }
+    }
 }, 1500);
