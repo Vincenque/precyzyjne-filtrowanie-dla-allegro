@@ -6,6 +6,19 @@
     margin-top: 8px;
 }
 
+.precyzyjna-nowa-sekcja {
+    margin-bottom: 24px;
+    padding-top: 16px;
+    border-top: 1px solid #e5e5e5;
+}
+
+.tytul-nowej-sekcji {
+    font-size: 16px;
+    font-weight: bold;
+    color: #222222;
+    margin-bottom: 16px;
+}
+
 .allegro-radio-wtyczka {
     display: flex;
     align-items: flex-start;
@@ -85,4 +98,13 @@
 
 .przycisk-akcji:hover {
     background-color: #e55100;
+}
+
+/* Ukrycie komponentów tradycyjnej paginacji na rzecz nieskończonego przewijania */
+[aria-label*="paginacj"],
+[aria-label*="pagination"],
+[data-box-name*="Pagination"],
+[data-role*="pagination"],
+.pagination {
+    display: none !important;
 }

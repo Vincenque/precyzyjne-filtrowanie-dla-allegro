@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Allegro Precyzyjne Filtrowanie",
-  "version": "0.01",
+  "version": "0.04",
   "description": "Rozszerza opcje filtrowania na Allegro o precyzyjne zakresy ocen i liczbę opinii. Treści są generowane przez AI na podstawie promptów Vincenque (https://github.com/Vincenque)",
   "host_permissions": [
     "*://*.allegro.pl/*"
