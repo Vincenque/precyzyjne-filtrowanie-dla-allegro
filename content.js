@@ -8,7 +8,6 @@ let minimalnaLiczbaWidocznychOfert = 12;
 let czyZainicjowanoZapisaneFiltry = false;
 let ostatniZnanyUrl = window.location.href;
 
-// Funkcja analityczna budująca mapę DOM i wyłuskująca główny kontener na podstawie zagęszczenia ofert
 function znajdzGlownyKontener(korzenDokumentu) {
     let wszystkieArtykuly;
     let drzewoKandydatow;
@@ -20,7 +19,6 @@ function znajdzGlownyKontener(korzenDokumentu) {
     wytypowanyKontener = korzenDokumentu.body || korzenDokumentu;
     maksymalnaLiczbaDzieci = 0;
 
-    // Przeszukujemy przodków wszystkich artykułów
     wszystkieArtykuly.forEach(function(artykul) {
         let rodzic;
         rodzic = artykul.parentElement;
@@ -30,7 +28,6 @@ function znajdzGlownyKontener(korzenDokumentu) {
         }
     });
 
-    // Najlepszym kandydatem na główną siatkę jest element mający najwięcej bezpośrednich dzieci zawierających oferty
     drzewoKandydatow.forEach(function(kandydat) {
         let liczbaDzieciZArtykulami;
         liczbaDzieciZArtykulami = 0;
@@ -54,7 +51,6 @@ function synchronizujZakresy() {
     poleOd = document.getElementById("zakres-ocena-od");
     poleDo = document.getElementById("zakres-ocena-do");
 
-    // Weryfikacja, by górny zakres nigdy nie spadł poniżej wartości dolnego zakresu
     wartoscOd = parseFloat(poleOd.value.replace(",", ".")) || 0;
     wartoscDo = parseFloat(poleDo.value.replace(",", ".")) || 5;
 
@@ -72,21 +68,18 @@ function aktualizujAdresUrl(wartoscOd) {
     obecnyParametr = obiektUrl.searchParams.get("ocena-produktu") || "";
     wartoscParametru = "";
 
-    // Dynamicznie obliczamy wartość niezbędną dla serwerów Allegro w zależności od naszych widełek
     (wartoscOd >= 5.0) ? wartoscParametru = "5.0" : ((wartoscOd >= 4.8) ? wartoscParametru = "od-4.8" : ((wartoscOd >= 4.6) ? wartoscParametru = "od-4.6" : ""));
 
     if (obecnyParametr !== wartoscParametru) {
         znacznikCzasuPrzeladowania = new Date().toISOString();
         console.log(znacznikCzasuPrzeladowania + " - Zmiana natywnego filtra Allegro, nastąpi odświeżenie strony.");
         
-        // Zmieniamy adres wymuszając hard-reload, co odświeża bazowy widok produktów po stronie Allegro
         (wartoscParametru !== "") ? obiektUrl.searchParams.set("ocena-produktu", wartoscParametru) : obiektUrl.searchParams.delete("ocena-produktu");
         obiektUrl.searchParams.delete("p");
         window.location.href = obiektUrl.toString();
         return true;
     }
     
-    // Zapobiega fałszywym detekcjom zmiany adresu (SPA) w pętli setInterval po zaktualizowaniu adresu
     window.history.replaceState({}, "", obiektUrl.toString());
     ostatniZnanyUrl = window.location.href;
     
@@ -96,7 +89,6 @@ function aktualizujAdresUrl(wartoscOd) {
 function ukryjPaginacje() {
     let elementyPaginacji;
     
-    // Szukamy elementów związanych ze stronicowaniem po różnorodnych atrybutach, które Allegro miesza
     elementyPaginacji = document.querySelectorAll('[aria-label*="paginacj"], [aria-label*="pagination"], [data-box-name*="Pagination"], [data-role*="pagination"]');
     elementyPaginacji.forEach(function(element) {
         element.style.display = "none";
@@ -106,6 +98,8 @@ function ukryjPaginacje() {
 function wstrzyknijPanelBoczny() {
     let znacznikCzasuWstrzykiwania;
     let znacznikCzasuBledu;
+    let istniejacePanele;
+    let aktywnyZnaleziony;
     let wszystkieNaglowki;
     let naglowekOceny;
     let sekcjaOceny;
@@ -118,28 +112,34 @@ function wstrzyknijPanelBoczny() {
     let inneRadia;
     let przyciskUruchamiajacy;
     let sekcjaZastepcza;
+    let kontenerZastepczy;
     let poleOd;
     let poleDo;
 
-    try {
-        // Kontrolna próba pobrania elementu chroni przed dublowaniem kontrolek w drzewie DOM
-        document.getElementById("wlasny-zakres-radio").id;
+    // Mechanizm samoczyszczący - niszczy zduplikowane lub osierocone przez SPA panele
+    istniejacePanele = document.querySelectorAll(".precyzyjny-filtr-kontener");
+    aktywnyZnaleziony = false;
+
+    (istniejacePanele.length > 0) ? istniejacePanele.forEach(function(panel) {
+        (!aktywnyZnaleziony && document.body.contains(panel)) ? aktywnyZnaleziony = true : panel.remove();
+    }) : null;
+
+    if (aktywnyZnaleziony) {
         return;
-    } catch (blokadaWielokrotna) {
-        znacznikCzasuWstrzykiwania = new Date().toISOString();
     }
 
+    znacznikCzasuWstrzykiwania = new Date().toISOString();
     console.log(znacznikCzasuWstrzykiwania + " - Rozpoczęcie wstrzykiwania własnego precyzyjnego zakresu do panelu ocen.");
-
-    wszystkieNaglowki = Array.from(document.querySelectorAll("h3"));
-    naglowekOceny = wszystkieNaglowki.find(function(naglowek) {
-        return naglowek.innerText.includes("Ocena produktu");
-    });
 
     autorskiPanelFiltrow = document.createElement("div");
 
     try {
-        // Skrypt szuka pierwszego kontenera, który jest ul/div i ma w sobie przyciski radio
+        wszystkieNaglowki = Array.from(document.querySelectorAll("h3"));
+        naglowekOceny = wszystkieNaglowki.find(function(naglowek) {
+            return naglowek.innerText.includes("Ocena produktu");
+        });
+
+        // Agresywny "happy path" - wspinanie się po węzłach
         sekcjaOceny = naglowekOceny.parentElement;
         while (sekcjaOceny.tagName !== "BODY" && sekcjaOceny.querySelectorAll('input[type="radio"]').length === 0) {
             sekcjaOceny = sekcjaOceny.parentElement;
@@ -149,7 +149,6 @@ function wstrzyknijPanelBoczny() {
         ostatnieRadio = wszystkieRadia[wszystkieRadia.length - 1];
         nazwaGrupyRadio = ostatnieRadio.name;
 
-        // Klonujemy klasę wiersza z oryginalnego Allegro, by nasz filtr zlał się wizualnie ze stroną
         wierszOstatniejOpcji = ostatnieRadio.parentElement;
         while (wierszOstatniejOpcji.parentElement.querySelectorAll('input[type="radio"]').length === 1) {
             wierszOstatniejOpcji = wierszOstatniejOpcji.parentElement;
@@ -177,7 +176,6 @@ function wstrzyknijPanelBoczny() {
             </div>
         `;
 
-        // Używamy insertAdjacentElement by zagwarantować umiejscowienie na idealnym końcu grupy
         wierszOstatniejOpcji.insertAdjacentElement("afterend", autorskiPanelFiltrow);
 
         inneRadia = sekcjaOceny.querySelectorAll('input[type="radio"]:not(#wlasny-zakres-radio)');
@@ -189,39 +187,46 @@ function wstrzyknijPanelBoczny() {
         });
 
     } catch (bladWstrzykiwania) {
-        // Jeśli nie ma oryginalnej grupy ocen (np. aktywny filtr schował kategorię), budujemy ją od zera
-        znacznikCzasuBledu = new Date().toISOString();
-        console.log(znacznikCzasuBledu + " - Filtr ocen aktywny (brak głównej sekcji). Błąd: " + bladWstrzykiwania.message + ". Inicjacja samodzielnej sekcji zastępczej.");
+        try {
+            znacznikCzasuBledu = new Date().toISOString();
+            console.log(znacznikCzasuBledu + " - Filtr ocen niedostępny. Błąd: " + bladWstrzykiwania.message + ". Inicjacja bezpiecznej sekcji zastępczej.");
 
-        nazwaGrupyRadio = "ocena_produktu_radio_wlasna";
-        sekcjaZastepcza = wszystkieNaglowki.find(function(naglowek) {
-            return naglowek.innerText.includes("Stan") || naglowek.innerText.includes("Gwarancja");
-        });
+            nazwaGrupyRadio = "ocena_produktu_radio_wlasna";
+            sekcjaZastepcza = wszystkieNaglowki.find(function(naglowek) {
+                return naglowek.innerText.includes("Stan") || naglowek.innerText.includes("Cena") || naglowek.innerText.includes("Gwarancja") || naglowek.innerText.includes("Marka");
+            });
 
-        autorskiPanelFiltrow.className = "precyzyjny-filtr-kontener precyzyjna-nowa-sekcja";
-        autorskiPanelFiltrow.innerHTML = `
-            <h3 class="tytul-nowej-sekcji">Ocena produktu (Własny zakres)</h3>
-            <div class="allegro-radio-wtyczka">
-                <input type="radio" id="wlasny-zakres-radio" name="${nazwaGrupyRadio}" class="pole-wyboru-radio" checked>
-                <label for="wlasny-zakres-radio" class="etykieta-radio">Edytuj precyzyjny zakres</label>
-            </div>
-            <div id="szczegoly-filtru" class="szczegoly-ukryte" style="display: block; padding-left: 0;">
-                <div class="sekcja-filtru">
-                    <input type="number" id="zakres-ocena-od" class="pole-wprowadzania" step="0.01" value="4.75" placeholder="Od (np. 4.75)">
-                    <input type="number" id="zakres-ocena-do" class="pole-wprowadzania" step="0.01" value="5.00" placeholder="Do (np. 4.95)">
+            kontenerZastepczy = sekcjaZastepcza.parentElement.parentElement;
+
+            autorskiPanelFiltrow.className = "precyzyjny-filtr-kontener precyzyjna-nowa-sekcja";
+            autorskiPanelFiltrow.innerHTML = `
+                <h3 class="tytul-nowej-sekcji">Ocena produktu (Własny zakres)</h3>
+                <div class="allegro-radio-wtyczka">
+                    <input type="radio" id="wlasny-zakres-radio" name="${nazwaGrupyRadio}" class="pole-wyboru-radio" checked>
+                    <label for="wlasny-zakres-radio" class="etykieta-radio">Edytuj precyzyjny zakres</label>
                 </div>
-                <div class="sekcja-filtru">
-                    <div class="wiersz-opinii">
-                        <input type="checkbox" id="weryfikuj-opinie" class="pole-wyboru">
-                        <label for="weryfikuj-opinie" class="etykieta-opinii">Min. liczba opinii:</label>
-                        <input type="number" id="wymagane-opinie" class="pole-wprowadzania pole-krotkie" value="30" placeholder="np. 30">
+                <div id="szczegoly-filtru" class="szczegoly-ukryte" style="display: block; padding-left: 0;">
+                    <div class="sekcja-filtru">
+                        <input type="number" id="zakres-ocena-od" class="pole-wprowadzania" step="0.01" value="4.75" placeholder="Od (np. 4.75)">
+                        <input type="number" id="zakres-ocena-do" class="pole-wprowadzania" step="0.01" value="5.00" placeholder="Do (np. 4.95)">
                     </div>
+                    <div class="sekcja-filtru">
+                        <div class="wiersz-opinii">
+                            <input type="checkbox" id="weryfikuj-opinie" class="pole-wyboru">
+                            <label for="weryfikuj-opinie" class="etykieta-opinii">Min. liczba opinii:</label>
+                            <input type="number" id="wymagane-opinie" class="pole-wprowadzania pole-krotkie" value="30" placeholder="np. 30">
+                        </div>
+                    </div>
+                    <button id="uruchom-filtrowanie" class="przycisk-akcji">Zastosuj filtry</button>
                 </div>
-                <button id="uruchom-filtrowanie" class="przycisk-akcji">Zastosuj filtry</button>
-            </div>
-        `;
+            `;
 
-        sekcjaZastepcza.parentElement.parentElement.insertAdjacentElement("beforebegin", autorskiPanelFiltrow);
+            kontenerZastepczy.insertAdjacentElement("beforebegin", autorskiPanelFiltrow);
+        } catch (bladKrytyczny) {
+            let znacznikKrytyczny = new Date().toISOString();
+            console.log(znacznikKrytyczny + " - Zaniechano wstrzykiwania. Błąd krytyczny struktury DOM: " + bladKrytyczny.message);
+            return;
+        }
     }
 
     poleRadio = document.getElementById("wlasny-zakres-radio");
@@ -229,7 +234,6 @@ function wstrzyknijPanelBoczny() {
         document.getElementById("szczegoly-filtru").style.display = zdarzenie.target.checked ? "block" : "none";
     });
 
-    // Odtwarzanie stanów dla płynnego UX przy hard-reload
     if (sessionStorage.getItem("wlasnyFiltrAktywny") === "tak") {
         poleRadio.checked = true;
         document.getElementById("szczegoly-filtru").style.display = "block";
@@ -274,7 +278,6 @@ function przetwarzajOferty() {
     liczbaOpinii = parseInt(document.getElementById("wymagane-opinie").value) || 0;
     sprawdzajOpinie = document.getElementById("weryfikuj-opinie").checked;
 
-    // Przechowujemy dane filtrów w sesji przeglądarki na wypadek asynchronicznego przeładowania układu strony (SPA)
     sessionStorage.setItem("wlasnyFiltrAktywny", "tak");
     sessionStorage.setItem("wlasnaOcenaOd", document.getElementById("zakres-ocena-od").value);
     sessionStorage.setItem("wlasnaOcenaDo", document.getElementById("zakres-ocena-do").value);
@@ -289,13 +292,11 @@ function przetwarzajOferty() {
     czyOsiagnietoKoniecStron = false;
     glownyKontener = znajdzGlownyKontener(document);
 
-    // Bezwzględnie chowamy wszystko, wliczając w to nadrzędne puste komórki siatki css
     document.querySelectorAll("article").forEach(function(oferta) {
         let ramkaSiatki;
         oferta.style.display = "none";
         ramkaSiatki = oferta;
         
-        // Pniemy się wyżej, by ukryć div kontenerowy danego artykułu, likwidując "białe luki" na gridzie
         while (ramkaSiatki.parentElement && ramkaSiatki.parentElement !== glownyKontener) {
             ramkaSiatki = ramkaSiatki.parentElement;
         }
@@ -324,7 +325,6 @@ function przetwarzajOferty() {
         wartoscOceny = parseFloat(tekstOcena) || 0;
         wartoscOpinii = parseInt(tekstOpinie) || 0;
 
-        // Jeśli oferta jest poprawna, pokazujemy ją oraz całe jej drzewo w górę do kontenera
         if (wartoscOceny >= ocenaOd && wartoscOceny <= ocenaDo && (!sprawdzajOpinie || wartoscOpinii >= liczbaOpinii)) {
             let aktualnyPoziom;
             aktualnyPoziom = oferta;
@@ -335,7 +335,6 @@ function przetwarzajOferty() {
         }
     });
 
-    // Weryfikacja ilości produktów po odfiltrowaniu w celu wczesnego wyzwolenia nieskończonego przewijania
     liczbaWidocznychOfert = Array.from(glownyKontener.querySelectorAll("article")).filter(function(oferta) {
         return oferta.style.display !== "none";
     }).length;
@@ -370,7 +369,6 @@ function pobierzKolejnaStrone() {
     urlKolejnejStrony = new URL(window.location.href);
     urlKolejnejStrony.searchParams.set("p", numerBiezacejStrony);
 
-    // Aktualizujemy pasek przeglądarki już na etapie wywołania funkcji, oraz zachowujemy ten URL w pamięci
     window.history.replaceState({}, "", urlKolejnejStrony.toString());
     ostatniZnanyUrl = window.location.href;
 
@@ -397,7 +395,6 @@ function pobierzKolejnaStrone() {
 
             (sprawdzaneArtykuly.length === 0) ? czyOsiagnietoKoniecStron = true : null;
 
-            // Przechodzimy tylko przez nadrzędne komórki siatki, zachowując oryginalne formatowanie HTML/CSS Allegro
             Array.from(pobranyKontener.children).forEach(function(komorka) {
                 let podArtykuly;
                 let czyZostawicKomorke;
@@ -470,12 +467,10 @@ window.addEventListener("scroll", function() {
     let identyfikatorWyszukiwania;
     let pozycjaWyzwalacza;
 
-    // Natywny XPath wyszukujący tekst pożądanego identyfikatora - gwarantuje wysoką wydajność skanowania drzewa
     obiektXPath = document.evaluate("//span[contains(., 'identyfikator wyszukiwania')]", document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null);
     identyfikatorWyszukiwania = obiektXPath.singleNodeValue;
 
     if (identyfikatorWyszukiwania) {
-        // Obliczamy odległość wyzwalacza z dużym zapasem, by płynnie załadować produkty, zanim użytkownik do nich dotrze
         pozycjaWyzwalacza = identyfikatorWyszukiwania.getBoundingClientRect().top;
         (pozycjaWyzwalacza < window.innerHeight + 800 && !czyTrwaPobieranieKolejnejStrony && !czyOsiagnietoKoniecStron) ? pobierzKolejnaStrone() : null;
     } else {
@@ -490,16 +485,13 @@ setInterval(function() {
     wstrzyknijPanelBoczny();
     ukryjPaginacje();
 
-    // Wykrywanie zdarzeń SPA (np. zmiana sortowania "najniższa cena") bez konieczności nasłuchiwania na wszystkie akcje
     if (window.location.href !== ostatniZnanyUrl) {
         ostatniZnanyUrl = window.location.href;
 
-        // Jeżeli nasz własny filtr jest włączony, po załadowaniu nowej siatki wymuszamy jego asynchroniczne ponowne nałożenie
         if (sessionStorage.getItem("wlasnyFiltrAktywny") === "tak") {
             znacznikCzasuSpa = new Date().toISOString();
             console.log(znacznikCzasuSpa + " - Wykryto nawigację SPA. Odtwarzanie własnego filtra ofert.");
             
-            // 1200ms to bezpieczny margines na to, aby skrypty Allegro zdążyły pobrać zawartość nowej podstrony
             setTimeout(przetwarzajOferty, 1200);
         }
     }
