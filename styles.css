@@ -101,22 +101,22 @@
 }
 
 /* Ukrycie komponentów tradycyjnej paginacji na rzecz nieskończonego przewijania */
-[aria-label*="paginacj"],
-[aria-label*="pagination"],
-[data-box-name*="Pagination"],
-[data-role*="pagination"],
-.pagination {
+body.wtyczka-aktywna [aria-label*="paginacj"],
+body.wtyczka-aktywna [aria-label*="pagination"],
+body.wtyczka-aktywna [data-box-name*="Pagination"],
+body.wtyczka-aktywna [data-role*="pagination"],
+body.wtyczka-aktywna .pagination {
     display: none !important;
 }
 
 /* Wyróżnianie ofert sponsorowanych i promowanych */
-.kafelek-sponsorowany {
+body.wtyczka-aktywna .kafelek-sponsorowany {
     background-color: #cce8ff !important;
     border-radius: 8px;
     padding: 8px;
 }
 
-.kafelek-promowany {
+body.wtyczka-aktywna .kafelek-promowany {
     background-color: #fffbe6 !important;
     border-radius: 8px;
     padding: 8px;

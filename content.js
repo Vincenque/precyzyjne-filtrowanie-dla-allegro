@@ -480,39 +480,49 @@ function pobierzKolejnaStrone() {
         });
 }
 
-window.addEventListener("scroll", function() {
-    let dystansDoDnaOkna;
-    let obiektXPath;
-    let identyfikatorWyszukiwania;
-    let pozycjaWyzwalacza;
+// Weryfikacja stanu rozszerzenia przed uruchomieniem jakichkolwiek nasłuchiwaczy i pętli
+chrome.storage.local.get(["isExtensionEnabled"], function(result) {
+    if (result.isExtensionEnabled !== false) {
+        
+        // Odblokowujemy inwazyjne reguły CSS (ukrywanie paginacji, kolory) poprzez nadanie klasy do body
+        document.body.classList.add("wtyczka-aktywna");
+        
+        window.addEventListener("scroll", function() {
+            let dystansDoDnaOkna;
+            let obiektXPath;
+            let identyfikatorWyszukiwania;
+            let pozycjaWyzwalacza;
 
-    obiektXPath = document.evaluate("//span[contains(., 'identyfikator wyszukiwania')]", document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null);
-    identyfikatorWyszukiwania = obiektXPath.singleNodeValue;
+            obiektXPath = document.evaluate("//span[contains(., 'identyfikator wyszukiwania')]", document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null);
+            identyfikatorWyszukiwania = obiektXPath.singleNodeValue;
 
-    if (identyfikatorWyszukiwania) {
-        pozycjaWyzwalacza = identyfikatorWyszukiwania.getBoundingClientRect().top;
-        (pozycjaWyzwalacza < window.innerHeight + 800 && !czyTrwaPobieranieKolejnejStrony && !czyOsiagnietoKoniecStron) ? pobierzKolejnaStrone() : null;
-    } else {
-        dystansDoDnaOkna = document.documentElement.scrollHeight - (window.innerHeight + window.scrollY);
-        (dystansDoDnaOkna < 900 && !czyTrwaPobieranieKolejnejStrony && !czyOsiagnietoKoniecStron) ? pobierzKolejnaStrone() : null;
+            if (identyfikatorWyszukiwania) {
+                pozycjaWyzwalacza = identyfikatorWyszukiwania.getBoundingClientRect().top;
+                (pozycjaWyzwalacza < window.innerHeight + 800 && !czyTrwaPobieranieKolejnejStrony && !czyOsiagnietoKoniecStron) ? pobierzKolejnaStrone() : null;
+            } else {
+                dystansDoDnaOkna = document.documentElement.scrollHeight - (window.innerHeight + window.scrollY);
+                (dystansDoDnaOkna < 900 && !czyTrwaPobieranieKolejnejStrony && !czyOsiagnietoKoniecStron) ? pobierzKolejnaStrone() : null;
+            }
+        });
+
+        setInterval(function() {
+            let znacznikCzasuSpa;
+
+            wstrzyknijPanelBoczny();
+            ukryjPaginacje();
+            podswietlWyroznioneOferty();
+
+            if (window.location.href !== ostatniZnanyUrl) {
+                ostatniZnanyUrl = window.location.href;
+
+                if (sessionStorage.getItem("wlasnyFiltrAktywny") === "tak") {
+                    znacznikCzasuSpa = new Date().toISOString();
+                    console.log(znacznikCzasuSpa + " - Wykryto nawigację SPA. Odtwarzanie własnego filtra ofert.");
+                    
+                    setTimeout(przetwarzajOferty, 1200);
+                }
+            }
+        }, 1500);
+
     }
 });
-
-setInterval(function() {
-    let znacznikCzasuSpa;
-
-    wstrzyknijPanelBoczny();
-    ukryjPaginacje();
-    podswietlWyroznioneOferty();
-
-    if (window.location.href !== ostatniZnanyUrl) {
-        ostatniZnanyUrl = window.location.href;
-
-        if (sessionStorage.getItem("wlasnyFiltrAktywny") === "tak") {
-            znacznikCzasuSpa = new Date().toISOString();
-            console.log(znacznikCzasuSpa + " - Wykryto nawigację SPA. Odtwarzanie własnego filtra ofert.");
-            
-            setTimeout(przetwarzajOferty, 1200);
-        }
-    }
-}, 1500);
