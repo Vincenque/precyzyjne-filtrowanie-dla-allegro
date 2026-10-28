@@ -6,7 +6,7 @@
     margin-top: 8px;
 }
 
-.precyzyjna-nowa-sekcja {
+.precyjna-nowa-sekcja {
     margin-bottom: 24px;
     padding-top: 16px;
     border-top: 1px solid #e5e5e5;
@@ -107,4 +107,17 @@
 [data-role*="pagination"],
 .pagination {
     display: none !important;
+}
+
+/* Wyróżnianie ofert sponsorowanych i promowanych */
+.kafelek-sponsorowany {
+    background-color: #cce8ff !important;
+    border-radius: 8px;
+    padding: 8px;
+}
+
+.kafelek-promowany {
+    background-color: #fffbe6 !important;
+    border-radius: 8px;
+    padding: 8px;
 }

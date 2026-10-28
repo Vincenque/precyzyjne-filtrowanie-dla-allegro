@@ -116,7 +116,6 @@ function wstrzyknijPanelBoczny() {
     let poleOd;
     let poleDo;
 
-    // Mechanizm samoczyszczący - niszczy zduplikowane lub osierocone przez SPA panele
     istniejacePanele = document.querySelectorAll(".precyzyjny-filtr-kontener");
     aktywnyZnaleziony = false;
 
@@ -139,7 +138,6 @@ function wstrzyknijPanelBoczny() {
             return naglowek.innerText.includes("Ocena produktu");
         });
 
-        // Agresywny "happy path" - wspinanie się po węzłach
         sekcjaOceny = naglowekOceny.parentElement;
         while (sekcjaOceny.tagName !== "BODY" && sekcjaOceny.querySelectorAll('input[type="radio"]').length === 0) {
             sekcjaOceny = sekcjaOceny.parentElement;
@@ -258,6 +256,26 @@ function wstrzyknijPanelBoczny() {
     });
 
     ukryjPaginacje();
+}
+
+function podswietlWyroznioneOferty() {
+    let wszystkieEtykiety = document.querySelectorAll("p");
+
+    wszystkieEtykiety.forEach(function(etykieta) {
+        if (etykieta.innerText.trim() === "Sponsorowane") {
+            let artykul;
+            artykul = etykieta.closest("article");
+            if (artykul) {
+                artykul.classList.add("kafelek-sponsorowany");
+            }
+        } else if (etykieta.innerText.trim() === "Promowane") {
+            let artykul;
+            artykul = etykieta.closest("article");
+            if (artykul) {
+                artykul.classList.add("kafelek-promowany");
+            }
+        }
+    });
 }
 
 function przetwarzajOferty() {
@@ -445,6 +463,7 @@ function pobierzKolejnaStrone() {
             });
 
             ukryjPaginacje();
+            podswietlWyroznioneOferty();
             czyTrwaPobieranieKolejnejStrony = false;
 
             lacznaLiczbaWidocznychOfert = Array.from(docelowyKontener.querySelectorAll("article")).filter(function(oferta) {
@@ -484,6 +503,7 @@ setInterval(function() {
 
     wstrzyknijPanelBoczny();
     ukryjPaginacje();
+    podswietlWyroznioneOferty();
 
     if (window.location.href !== ostatniZnanyUrl) {
         ostatniZnanyUrl = window.location.href;
