@@ -480,9 +480,59 @@ function pobierzKolejnaStrone() {
         });
 }
 
+// Wstrzykuje na górze strony pasek z przełącznikiem aktywności i legendą kolorów tła
+function wstrzyknijPasekGorny(czyAktywna) {
+    let pasekGorny;
+    let przelacznikStrony;
+    let znacznikCzasuZmiany;
+
+    pasekGorny = document.createElement("div");
+    pasekGorny.id = "pasek-wtyczki-allegro";
+    pasekGorny.className = czyAktywna ? "pasek-wtyczki-allegro" : "pasek-wtyczki-allegro pasek-wtyczki-wylaczony";
+
+    // Umieszczenie przełącznika w górnym wierszu, a legendy kolorów bezpośrednio pod nim
+    pasekGorny.innerHTML = `
+        <div class="pasek-wtyczki-wnetrze">
+            <div class="pasek-wtyczki-sterowanie">
+                <span>Precyzyjne Filtrowanie dla Allegro</span>
+                <label class="pasek-przelacznik">
+                    <input type="checkbox" id="przelacznik-wtyczki-strona">
+                    <span class="pasek-suwak"></span>
+                </label>
+            </div>
+            <div class="pasek-wtyczki-legenda">
+                <span>Legenda kolorów tła:</span>
+                <span class="legenda-element"><span class="legenda-probka probka-sponsorowana"></span>Oferta sponsorowana</span>
+                <span class="legenda-element"><span class="legenda-probka probka-promowana"></span>Oferta promowana</span>
+            </div>
+        </div>
+    `;
+
+    // Wstawienie na początek body chroni komponenty Reacta przed konfliktami hydratacji
+    document.body.insertAdjacentElement("afterbegin", pasekGorny);
+
+    przelacznikStrony = document.getElementById("przelacznik-wtyczki-strona");
+    przelacznikStrony.checked = czyAktywna;
+
+    // Zapis nowego stanu w pamięci rozszerzenia i przeładowanie strony po zmianie suwaka
+    przelacznikStrony.addEventListener("change", function() {
+        znacznikCzasuZmiany = new Date().toISOString();
+        console.log(znacznikCzasuZmiany + " - Zmiana stanu rozszerzenia ze strony na: " + przelacznikStrony.checked);
+        chrome.storage.local.set({ "isExtensionEnabled": przelacznikStrony.checked }, function() {
+            window.location.reload();
+        });
+    });
+}
+
 // Weryfikacja stanu rozszerzenia przed uruchomieniem jakichkolwiek nasłuchiwaczy i pętli
 chrome.storage.local.get(["isExtensionEnabled"], function(result) {
-    if (result.isExtensionEnabled !== false) {
+    let czyWtyczkaWlaczona;
+    czyWtyczkaWlaczona = result.isExtensionEnabled !== false;
+
+    // Pasek z przełącznikiem i legendą pojawia się zawsze, aby dało się ponownie włączyć wtyczkę ze strony
+    wstrzyknijPasekGorny(czyWtyczkaWlaczona);
+
+    if (czyWtyczkaWlaczona) {
         
         // Odblokowujemy inwazyjne reguły CSS (ukrywanie paginacji, kolory) poprzez nadanie klasy do body
         document.body.classList.add("wtyczka-aktywna");

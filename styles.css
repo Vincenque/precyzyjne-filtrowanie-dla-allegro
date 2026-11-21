@@ -121,3 +121,117 @@ body.wtyczka-aktywna .kafelek-promowany {
     border-radius: 8px;
     padding: 8px;
 }
+
+/* Górny pasek wtyczki z przełącznikiem i legendą widoczny niezależnie od stanu aktywności */
+.pasek-wtyczki-allegro {
+    width: 100%;
+    background-color: #ffffff;
+    border-bottom: 1px solid #e5e5e5;
+    padding: 8px 16px;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+    color: #222222;
+    position: relative;
+    z-index: 9999;
+}
+
+/* Układ pionowy: przełącznik na górze, legenda kolorów pod spodem */
+.pasek-wtyczki-wnetrze {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.pasek-wtyczki-sterowanie {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    font-weight: bold;
+}
+
+/* Przełącznik suwakowy na stronie dopasowany wizualnie do popupu */
+.pasek-przelacznik {
+    position: relative;
+    display: inline-block;
+    width: 38px;
+    height: 20px;
+}
+
+.pasek-przelacznik input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.pasek-suwak {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #cccccc;
+    transition: 0.3s;
+    border-radius: 20px;
+}
+
+.pasek-suwak:before {
+    position: absolute;
+    content: "";
+    height: 14px;
+    width: 14px;
+    left: 3px;
+    bottom: 3px;
+    background-color: #ffffff;
+    transition: 0.3s;
+    border-radius: 50%;
+}
+
+.pasek-przelacznik input:checked + .pasek-suwak {
+    background-color: #ff5a00;
+}
+
+.pasek-przelacznik input:checked + .pasek-suwak:before {
+    transform: translateX(18px);
+}
+
+/* Pozioma legenda kolorów tła pod przełącznikiem */
+.pasek-wtyczki-legenda {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 14px;
+    font-size: 12px;
+    color: #444444;
+}
+
+/* Przygaszenie legendy gdy rozszerzenie jest wyłączone */
+.pasek-wtyczki-wylaczony .pasek-wtyczki-legenda {
+    opacity: 0.55;
+}
+
+.legenda-element {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.legenda-probka {
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
+    display: inline-block;
+}
+
+.probka-sponsorowana {
+    background-color: #cce8ff;
+    border: 1px solid #99d1ff;
+}
+
+.probka-promowana {
+    background-color: #fffbe6;
+    border: 1px solid #e6d899;
+}
