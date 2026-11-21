@@ -1,1 +1,3 @@
-repoweaver_context.json
+repoweaver_context*.json
+*.patch
+*.zip

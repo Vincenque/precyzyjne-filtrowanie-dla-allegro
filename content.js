@@ -216,10 +216,18 @@ function wstrzyknijPanelBoczny() {
                         </div>
                     </div>
                     <button id="uruchom-filtrowanie" class="przycisk-akcji">Zastosuj filtry</button>
+                    <button id="resetuj-filtrowanie" class="przycisk-akcji" style="background-color: #767676; margin-top: 8px;">Wyczyść filtry</button>
                 </div>
             `;
 
             kontenerZastepczy.insertAdjacentElement("beforebegin", autorskiPanelFiltrow);
+
+            // Przycisk czyszczenia dla widoków bez natywnych opcji radio (np. lista ofert produktu)
+            document.getElementById("resetuj-filtrowanie").addEventListener("click", function(zdarzenie) {
+                zdarzenie.preventDefault();
+                sessionStorage.removeItem("wlasnyFiltrAktywny");
+                window.location.reload();
+            });
         } catch (bladKrytyczny) {
             let znacznikKrytyczny = new Date().toISOString();
             console.log(znacznikKrytyczny + " - Zaniechano wstrzykiwania. Błąd krytyczny struktury DOM: " + bladKrytyczny.message);
@@ -240,7 +248,8 @@ function wstrzyknijPanelBoczny() {
         document.getElementById("wymagane-opinie").value = sessionStorage.getItem("wlasneOpinie") || "30";
         document.getElementById("weryfikuj-opinie").checked = (sessionStorage.getItem("weryfikujOpinie") === "true");
         
-        (!czyZainicjowanoZapisaneFiltry) ? (czyZainicjowanoZapisaneFiltry = true, setTimeout(przetwarzajOferty, 600)) : null;
+        // Pomijamy automatyczne filtrowanie na podstronie ofert jednego produktu
+        (!czyZainicjowanoZapisaneFiltry && !window.location.href.includes("/oferty-produktu/")) ? (czyZainicjowanoZapisaneFiltry = true, setTimeout(przetwarzajOferty, 600)) : null;
     }
 
     poleOd = document.getElementById("zakres-ocena-od");
@@ -303,6 +312,12 @@ function przetwarzajOferty() {
     sessionStorage.setItem("weryfikujOpinie", sprawdzajOpinie);
 
     if (aktualizujAdresUrl(ocenaOd)) {
+        return;
+    }
+
+    // Widok wariantów pojedynczego produktu nie ma etykiet ocen na kafelkach, więc wstrzymujemy ukrywanie
+    if (window.location.href.includes("/oferty-produktu/")) {
+        console.log(znacznikCzasuFiltrowania + " - Filtrowanie zawieszone: widok ofert pojedynczego produktu.");
         return;
     }
 
@@ -538,20 +553,17 @@ chrome.storage.local.get(["isExtensionEnabled"], function(result) {
         document.body.classList.add("wtyczka-aktywna");
         
         window.addEventListener("scroll", function() {
-            let dystansDoDnaOkna;
             let obiektXPath;
             let identyfikatorWyszukiwania;
             let pozycjaWyzwalacza;
 
+            // Doczytujemy kolejne strony wyłącznie na listach wyszukiwania (z identyfikatorem wyszukiwania) i poza widokiem ofert produktu
             obiektXPath = document.evaluate("//span[contains(., 'identyfikator wyszukiwania')]", document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null);
             identyfikatorWyszukiwania = obiektXPath.singleNodeValue;
 
-            if (identyfikatorWyszukiwania) {
+            if (identyfikatorWyszukiwania && !window.location.href.includes("/oferty-produktu/")) {
                 pozycjaWyzwalacza = identyfikatorWyszukiwania.getBoundingClientRect().top;
                 (pozycjaWyzwalacza < window.innerHeight + 800 && !czyTrwaPobieranieKolejnejStrony && !czyOsiagnietoKoniecStron) ? pobierzKolejnaStrone() : null;
-            } else {
-                dystansDoDnaOkna = document.documentElement.scrollHeight - (window.innerHeight + window.scrollY);
-                (dystansDoDnaOkna < 900 && !czyTrwaPobieranieKolejnejStrony && !czyOsiagnietoKoniecStron) ? pobierzKolejnaStrone() : null;
             }
         });
 
