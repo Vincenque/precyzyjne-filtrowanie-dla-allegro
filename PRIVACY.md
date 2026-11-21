@@ -13,6 +13,6 @@ Rozszerzenie **Precyzyjne Filtrowanie dla Allegro** zostało stworzone z poszano
 - **Brak serwerów zewnętrznych:** Kod nie łączy się z żadnymi zewnętrznymi serwerami ani interfejsami API podmiotów trzecich. W ramach nieskończonego przewijania przeglądarka pobiera wyłącznie kolejne strony wyników bezpośrednio z domeny `allegro.pl`.
 - **Zakres działania na stronie:** Rozszerzenie modyfikuje wyłącznie lokalny wygląd (DOM/CSS) przeglądanych stron w domenie `allegro.pl`, dodając panel precyzyjnego filtrowania ocen, górny pasek z przełącznikiem i legendą kolorów oraz wyróżniając wizualnie oferty sponsorowane i promowane.
 
-## Nota prawna
+## Nota prawna i kod źródłowy
 
-Rozszerzenie jest niezależnym narzędziem open-source i nie jest w żaden sposób powiązane, wspierane ani sponsorowane przez Allegro sp. z o.o.
+Rozszerzenie jest niezależnym narzędziem open-source (kod źródłowy dostępny publicznie pod adresem [https://github.com/Vincenque/precyzyjne-filtrowanie-dla-allegro](https://github.com/Vincenque/precyzyjne-filtrowanie-dla-allegro)) i nie jest w żaden sposób powiązane, wspierane ani sponsorowane przez Allegro sp. z o.o.

@@ -25,6 +25,10 @@ Rozszerzenie do przeglądarki Chrome (Manifest V3) zaprojektowane jako uzupełni
 
 Rozszerzenie działa w pełni lokalnie w przeglądarce i nie przesyła żadnych danych do serwerów zewnętrznych. Szczegóły znajdują się w pliku [PRIVACY.md](PRIVACY.md).
 
+## Autorstwo
+
+Głównym twórcą kodu i dokumentacji tego projektu jest **AI**, natomiast **Vincenque** ([github.com/Vincenque](https://github.com/Vincenque)) pełni rolę pomysłodawcy i promptera kierującego rozwojem rozszerzenia. Kod źródłowy jest w pełni otwarty i dostępny w repozytorium: [https://github.com/Vincenque/precyzyjne-filtrowanie-dla-allegro](https://github.com/Vincenque/precyzyjne-filtrowanie-dla-allegro).
+
 ## Zastrzeżenie
 
 Projekt jest niezależnym, nieoficjalnym rozszerzeniem i nie jest powiązany z Allegro sp. z o.o.
